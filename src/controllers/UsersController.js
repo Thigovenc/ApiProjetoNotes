@@ -1,5 +1,5 @@
 const AppError = require("../utils/AppError")
-
+const sqliteConnection = require("../database/sqlite");
 class UsersController {
 
     /*
@@ -10,13 +10,17 @@ class UsersController {
         5- delete- DELETE para remover um registo.
     */
 
-    create(request, response){
+    async create(request, response){
         const{name,email,password}=request.body;
 
-        if(!name){
-            throw new AppError("O NOME e obrigatorio!");
+        const database = await sqliteConnection();
+        const checkUserExists = await database.get("SELECT * FROM users WHERE email = (?)", [email])
+
+        if(checkUserExists){
+            throw new AppError("Este e-mail ja esta em uso.")
         }
-        response.status(201).json({name,email,password});
+
+        return response.status(201).json()
     }
 }
 
